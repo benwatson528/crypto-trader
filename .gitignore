@@ -1,8 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
-inputdata/
-lineofsight_graphs/
 output/
-/test/data/line_of_sight_analysis.kml
 .idea/
 
 # Byte-compiled / optimized / DLL files
@@ -143,3 +140,5 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+historic_bitcoin.parquet

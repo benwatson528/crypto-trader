@@ -1,7 +1,13 @@
+import time
 from datetime import datetime
+
 import pandas as pd
 
-df = pd.read_csv('historic_bitcoin.zip')
-df['Timestamp'] = [datetime.utcfromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') for x in df['Timestamp']]
+start_time = time.time()
 
-print(df)
+pd.set_option('display.max_columns', None)
+df = pd.read_csv('historic_bitcoin.zip')
+
+np = df.to_numpy()
+
+np.
