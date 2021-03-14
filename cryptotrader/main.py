@@ -1,4 +1,5 @@
 import time
+import datetime
 
 import pandas as pd
 
@@ -12,14 +13,14 @@ SELL_STATE = 'LOOKING_TO_SELL'
 btc_price_at_buy = df['weighted_price'].iloc[0]
 btc_held = 1000.00 / df['weighted_price'].iloc[0]
 initial_btc_held = btc_held
-cash_wallet = 0
+cash_wallet = 0.00
 
 FEE = 0.001  # 0.1%
-SELL_THRESHOLD = 0.003  # 0.3%
-BUY_THRESHOLD = 0.001  # 0.1%
+SELL_THRESHOLD = 0.10  # 10%
+BUY_THRESHOLD = 0.5  # 5%
 
-LARGE_SELL_THRESHOLD = 0.013  # 1.3%
-LARGE_BUY_THRESHOLD = 0.01  # 1%
+LARGE_SELL_THRESHOLD = 0.10  # 10%
+LARGE_BUY_THRESHOLD = 0.5  # 5%
 
 current_state = SELL_STATE
 btc_price_at_sell = 0.00
@@ -35,11 +36,30 @@ fee_this_period = 0.00
 
 is_large_buy = False
 
+
+
+## In which situations can we lose money?
+## 1. Bitcoin drops significantly while we hold it
+## 2. (technically) we trade so slowly that we effectively lose money vs HODLing
+## A trade should never lose money
+
+
+# 1000
+# 1030
+#
+
+previous_cash_wallet = 1000.00
+
 for _, row in df.iterrows():
-    if row_num % 10000 == 0:
+    if row_num % 100000 == 0:
+        print(f'Current state: {current_state}')
         print(f'Row number = {row_num:,}, Date = {row.timestamp}, BTC price = ${row.weighted_price:,.2f}')
         print(f'Expected return if HODLing = ${(initial_btc_held * row.weighted_price):,.2f}')
-        print(f'Intermediate cash wallet = ${cash_wallet:,.2f}')
+        if current_state == SELL_STATE:
+            print(f'Cash value of held Bitcoins = ${(btc_held * row.weighted_price):,.2f}')
+            print(f'Bitcoin bought at ${btc_price_at_buy:,.2f}')
+        else:
+            print(f'Intermediate cash wallet = ${cash_wallet:,.2f}')
         print(f'Intermediate fee paid = ${total_fee_paid:,.2f}, ${total_fee_paid - fee_this_period:,.2f} this period')
         print(f'Intermediate BTC held = {btc_held:,.2f}')
         print(f'Intermediate num transactions = {num_txns:,}')
@@ -53,6 +73,8 @@ for _, row in df.iterrows():
             total_fee_paid += sell_fee_paid
             # Multiply to get from BTC to cash
             cash_wallet = (btc_held - sell_fee_paid) * row.weighted_price
+            if cash_wallet <= previous_cash_wallet:
+                print("We lost money on the last trade")
             btc_price_at_sell = row.weighted_price
             btc_held = 0.00
             current_state = BUY_STATE
@@ -64,6 +86,8 @@ for _, row in df.iterrows():
             total_fee_paid += buy_fee_paid
             # Divide to get from cash to BTC
             btc_held = (cash_wallet - buy_fee_paid) / row.weighted_price
+            btc_price_at_buy = row.weighted_price
+            previous_cash_wallet = cash_wallet
             cash_wallet = 0.00
             current_state = SELL_STATE
             num_small_buys += 1
@@ -74,6 +98,8 @@ for _, row in df.iterrows():
             total_fee_paid += buy_fee_paid
             # Divide to get from cash to BTC
             btc_held = (cash_wallet - buy_fee_paid) / row.weighted_price
+            btc_price_at_buy = row.weighted_price
+            previous_cash_wallet = cash_wallet
             cash_wallet = 0.00
             current_state = SELL_STATE
             num_large_buys += 1
