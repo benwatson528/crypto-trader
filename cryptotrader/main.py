@@ -37,13 +37,17 @@ is_large_buy = False
 
 previous_cash_wallet = 1000.00
 
-for _, row in df.iterrows():
+v = df[['timestamp', 'weighted_price']].to_numpy()
+
+for row in v:
+    timestamp = row[0]
+    current_btc_price = row[1]
     if row_num % 100000 == 0:
         print(f'Current state: {current_state}')
-        print(f'Row number = {row_num:,}, Date = {row.timestamp}, BTC price = ${row.weighted_price:,.2f}')
-        print(f'Expected return if HODLing = ${(initial_btc_held * row.weighted_price):,.2f}')
+        print(f'Row number = {row_num:,}, Date = {timestamp}, BTC price = ${current_btc_price:,.2f}')
+        print(f'Expected return if HODLing = ${(initial_btc_held * current_btc_price):,.2f}')
         if current_state == SELL_STATE:
-            print(f'Cash value of held Bitcoins = ${(btc_held * row.weighted_price):,.2f}')
+            print(f'Cash value of held Bitcoins = ${(btc_held * current_btc_price):,.2f}')
             print(f'Bitcoin bought at ${btc_price_at_buy:,.2f}')
         else:
             print(f'Intermediate cash wallet = ${cash_wallet:,.2f}')
@@ -55,37 +59,37 @@ for _, row in df.iterrows():
     row_num += 1
     if current_state == SELL_STATE:
         current_sell_threshold = LARGE_SELL_THRESHOLD if is_large_buy else SELL_THRESHOLD
-        if row.weighted_price >= (btc_price_at_buy + (btc_price_at_buy * current_sell_threshold)):
+        if current_btc_price >= (btc_price_at_buy + (btc_price_at_buy * current_sell_threshold)):
             sell_fee_paid = btc_held * FEE
             total_fee_paid += sell_fee_paid
             # Multiply to get from BTC to cash
-            cash_wallet = (btc_held - sell_fee_paid) * row.weighted_price
+            cash_wallet = (btc_held - sell_fee_paid) * current_btc_price
             if cash_wallet <= previous_cash_wallet:
                 print("We lost money on the last trade")
-            btc_price_at_sell = row.weighted_price
+            btc_price_at_sell = current_btc_price
             btc_held = 0.00
             current_state = BUY_STATE
             num_sells += 1
             num_txns += 1
     elif current_state == BUY_STATE:
-        if row.weighted_price <= (btc_price_at_sell - (btc_price_at_sell * BUY_THRESHOLD)):
+        if current_btc_price <= (btc_price_at_sell - (btc_price_at_sell * BUY_THRESHOLD)):
             buy_fee_paid = cash_wallet * FEE
             total_fee_paid += buy_fee_paid
             # Divide to get from cash to BTC
-            btc_held = (cash_wallet - buy_fee_paid) / row.weighted_price
-            btc_price_at_buy = row.weighted_price
+            btc_held = (cash_wallet - buy_fee_paid) / current_btc_price
+            btc_price_at_buy = current_btc_price
             previous_cash_wallet = cash_wallet
             cash_wallet = 0.00
             current_state = SELL_STATE
             num_small_buys += 1
             num_txns += 1
             is_large_buy = False
-        elif row.weighted_price >= (btc_price_at_sell + (btc_price_at_sell * LARGE_BUY_THRESHOLD)):
+        elif current_btc_price >= (btc_price_at_sell + (btc_price_at_sell * LARGE_BUY_THRESHOLD)):
             buy_fee_paid = cash_wallet * FEE
             total_fee_paid += buy_fee_paid
             # Divide to get from cash to BTC
-            btc_held = (cash_wallet - buy_fee_paid) / row.weighted_price
-            btc_price_at_buy = row.weighted_price
+            btc_held = (cash_wallet - buy_fee_paid) / current_btc_price
+            btc_price_at_buy = current_btc_price
             previous_cash_wallet = cash_wallet
             cash_wallet = 0.00
             current_state = SELL_STATE
