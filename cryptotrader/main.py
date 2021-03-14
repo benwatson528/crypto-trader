@@ -35,16 +35,6 @@ fee_this_period = 0.00
 
 is_large_buy = False
 
-## In which situations can we lose money?
-## 1. Bitcoin drops significantly while we hold it
-## 2. (technically) we trade so slowly that we effectively lose money vs HODLing
-## A trade should never lose money
-
-
-# 1000
-# 1030
-#
-
 previous_cash_wallet = 1000.00
 
 for _, row in df.iterrows():
