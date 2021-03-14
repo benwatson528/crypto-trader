@@ -1,5 +1,4 @@
 import time
-import datetime
 
 import pandas as pd
 
@@ -16,11 +15,11 @@ initial_btc_held = btc_held
 cash_wallet = 0.00
 
 FEE = 0.001  # 0.1%
-SELL_THRESHOLD = 0.10  # 10%
-BUY_THRESHOLD = 0.5  # 5%
+SELL_THRESHOLD = 0.03  # 3%
+BUY_THRESHOLD = 0.01  # 1%
 
-LARGE_SELL_THRESHOLD = 0.10  # 10%
-LARGE_BUY_THRESHOLD = 0.5  # 5%
+LARGE_SELL_THRESHOLD = 0.03  # 3%
+LARGE_BUY_THRESHOLD = 0.1  # 10%
 
 current_state = SELL_STATE
 btc_price_at_sell = 0.00
@@ -35,8 +34,6 @@ total_fee_paid = 0.00
 fee_this_period = 0.00
 
 is_large_buy = False
-
-
 
 ## In which situations can we lose money?
 ## 1. Bitcoin drops significantly while we hold it
