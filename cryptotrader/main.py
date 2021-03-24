@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 FEE = 0.001  # 0.1%
 BUY_STATE = 'LOOKING_TO_BUY'
@@ -14,8 +15,8 @@ a = df[['timestamp', 'weighted_price']].to_numpy()
 
 def trade(data, sell_threshold, buy_threshold, large_sell_threshold, large_buy_threshold):
     # Assume that we've started by putting $1000 in BTC
-    btc_price_at_buy = df['weighted_price'].iloc[0]
-    btc_held = 1000.00 / df['weighted_price'].iloc[0]
+    btc_price_at_buy = data[0][1]
+    btc_held = 1000.00 / data[0][1]
     initial_btc_held = btc_held
     cash_wallet = 0.00
     current_state = SELL_STATE
@@ -90,7 +91,6 @@ def trade(data, sell_threshold, buy_threshold, large_sell_threshold, large_buy_t
                 is_large_buy = True
 
     print('\n')
-    print(f'Runtime = {time.time() - start}')
     print(f'Time period = {data[0][0]} to {data[-1][0]}')
     print(f'Final cash wallet = ${cash_wallet:,.2f}')
     print(f'Total fee paid = ${total_fee_paid:,.2f}')
@@ -99,12 +99,15 @@ def trade(data, sell_threshold, buy_threshold, large_sell_threshold, large_buy_t
     print(f'Num large buys = {num_large_buys}')
     print(f'Num small buys = {num_small_buys}')
     print(f'Num sells = {num_sells}')
-    print(f'Total fee paid = {num_sells}')
+    print(f'Cash value of held Bitcoins = ${(btc_held * data[-1][1]):,.2f}')
+    print(f'Expected return if HODLing = ${(initial_btc_held * data[-1][1]):,.2f}')
 
     return btc_held, cash_wallet
 
 
 split = np.array_split(a, 10)
+#
+# for arr in split:
+#     end_btc, end_cash = trade(df, 0.03, 0.01, 0.075, 0.1)
 
-for arr in split:
-    end_btc, end_cash = trade(arr, 0.03, 0.01, 0.03, 0.1)
+end_btc, end_cash = trade(np.concatenate(split[4:6]), 0.03, 0.01, 0.075, 0.1)
